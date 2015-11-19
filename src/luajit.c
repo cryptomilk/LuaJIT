@@ -518,8 +518,6 @@ static int pmain(lua_State *L)
   globalL = L;
   if (argv[0] && argv[0][0]) progname = argv[0];
 
-  LUAJIT_VERSION_SYM();  /* Linker-enforced version check. */
-
   argn = collectargs(argv, &flags);
   if (argn < 0) {  /* Invalid args? */
     print_usage();
