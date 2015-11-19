@@ -515,7 +515,6 @@ static int pmain(lua_State *L)
   int argn;
   int flags = 0;
   globalL = L;
-  LUAJIT_VERSION_SYM();  /* Linker-enforced version check. */
 
   argn = collectargs(argv, &flags);
   if (argn < 0) {  /* Invalid args? */
