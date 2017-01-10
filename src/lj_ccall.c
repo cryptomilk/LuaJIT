@@ -962,7 +962,7 @@ static int ccall_set_args(lua_State *L, CTState *cts, CType *ct,
   TValue *o, *top = L->top;
   CTypeID fid;
   CType *ctr;
-  MSize maxgpr, ngpr = 0, nsp = 0, narg;
+  MSize maxgpr, ngpr = 0, nsp = 0, narg, onstack = 0;
 #if CCALL_NARG_FPR
   MSize nfpr = 0;
 #if LJ_TARGET_ARM
@@ -1063,6 +1063,7 @@ static int ccall_set_args(lua_State *L, CTState *cts, CType *ct,
     CCALL_HANDLE_REGARG  /* Handle register arguments. */
 
     /* Otherwise pass argument on stack. */
+    onstack = 1;
     if (CCALL_ALIGN_STACKARG && !rp && (d->info & CTF_ALIGN) > CTALIGN_PTR) {
       MSize align = (1u << ctype_align(d->info-CTALIGN_PTR)) -1;
       nsp = (nsp + align) & ~align;  /* Align argument on stack. */
@@ -1106,8 +1107,9 @@ static int ccall_set_args(lua_State *L, CTState *cts, CType *ct,
 #endif
 #if LJ_TARGET_S390X
     /* Arguments need to be sign-/zero-extended to 64-bits. */
-    if ((ctype_isinteger_or_bool(d->info) || ctype_isenum(d->info)) && d->size <= 4) {
-      if (d->info & CTF_UNSIGNED)
+    if ((ctype_isinteger_or_bool(d->info) || ctype_isenum(d->info) ||
+        (isfp && onstack)) && d->size <= 4) {
+      if (d->info & CTF_UNSIGNED || isfp)
         *(uint64_t *)dp = (uint64_t)*(uint32_t *)dp;
       else
         *(int64_t *)dp = (int64_t)*(int32_t *)dp;
